@@ -1,12 +1,15 @@
+/// Program start address
+pub const PROGRAM_START: u16 = 0x200;
+
 // Struct that represents the RAM memory of the machine
 pub struct Memory {
-    ram: [u8; 4096],
+    ram: [u8; 0x1000],
 }
 
 impl Memory {
     /// Creates a new instance of Memory with the default interpreter values
     pub fn new() -> Memory {
-        let mut mem = Memory { ram: [0; 4096] };
+        let mut mem = Memory { ram: [0; 0x1000] };
 
         mem.load_font_sprites();
 
@@ -17,7 +20,7 @@ impl Memory {
     /// The occupied memory address range from 0x00 to 0x80
     fn load_font_sprites(&mut self) {
         // Default font sprites
-        let sprites: [[u8; 5]; 16]= [
+        let sprites: [[u8; 5]; 0x10]= [
             [0xF0, 0x90, 0x90, 0x90, 0xF0], // 0
             [0x20, 0x60, 0x20, 0x20, 0x70], // 1
             [0xF0, 0x10, 0xF0, 0x80, 0xF0], // 2
@@ -46,11 +49,11 @@ impl Memory {
         }
     }
 
-    fn write_byte(&mut self, index: usize, byte: u8) {
+    pub fn write_byte(&mut self, index: usize, byte: u8) {
         self.ram[index] = byte;
     }
 
-    fn read_byte(&mut self, index: usize) -> u8{
+    pub fn read_byte(&mut self, index: usize) -> u8{
         self.ram[index]
     }
 }

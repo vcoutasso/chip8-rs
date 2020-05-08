@@ -11,7 +11,19 @@ pub struct Chip8 {
 }
 
 impl Chip8 {
-    fn new() -> Chip8 {
+    pub fn new() -> Chip8 {
         Chip8 { ram: Memory::new(), cpu: CPU::new() }
+    }
+
+    pub fn next_instruction(&mut self) {
+        let opcode = self.ram.read_byte(self.cpu.program_counter() as usize);
+    }
+
+    pub fn load_rom(&mut self, rom: &Vec<u8>) {
+        let curr_pc = self.cpu.program_counter();
+
+        for (i, byte) in rom.iter().enumerate() {
+            self.ram.write_byte(curr_pc as usize + i, *byte);
+        }
     }
 }
