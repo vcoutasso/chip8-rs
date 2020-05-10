@@ -1,6 +1,3 @@
-/// Program start address
-pub const PROGRAM_START: u16 = 0x200;
-
 // Struct that represents the RAM memory of the machine
 pub struct Memory {
     ram: [u8; 0x1000],

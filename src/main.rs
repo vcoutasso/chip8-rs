@@ -6,6 +6,7 @@
 
 mod memory;
 mod cpu;
+mod instructions;
 mod chip8;
 
 use std::env;

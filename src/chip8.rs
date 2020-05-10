@@ -1,6 +1,12 @@
 use crate::memory::Memory;
 use crate::cpu::CPU;
 
+pub type Address = u16;
+pub type Register = u8;
+
+/// Program start address
+pub const PROGRAM_START: u16 = 0x200;
+
 pub struct Chip8 {
     // The memory. Notable addresses:
     // 0x000 to 0x1FF - Reserved for the interpreter originally. In this case, only 0x00 to 0x80 are used to store default font sprites
