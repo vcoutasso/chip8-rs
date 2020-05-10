@@ -37,9 +37,9 @@ pub struct CPU {
 impl CPU {
     pub fn new() -> CPU {
         // Initializes all registers with 0
-        let mut reg = Registers { vx: [0; 0x10], i: 0, dt: 0, st: 0, pc: PROGRAM_START, sp: 0 };
+        let reg = Registers { vx: [0; 0x10], i: 0, dt: 0, st: 0, pc: PROGRAM_START, sp: 0 };
         // 16 bytes means up to 16 levels of nested routines. This is the original value so I will be using it
-        let mut stack: Vec<Address> = vec![0; 0x10];
+        let stack: Vec<Address> = vec![0; 0x10];
 
         CPU { reg , stack }
     }
@@ -104,10 +104,6 @@ impl CPU {
         self.reg.pc += 2;
     }
 
-    pub fn copy_reg(&mut self, reg1: Register, reg2: Register) {
-        self.set_vx(reg1, self.get_vx(reg2));
-    }
-
     pub fn add(&mut self, reg1: Register, reg2: Register) {
         let tmp = self.get_vx(reg1) as u16 + self.get_vx(reg2) as u16;
         if tmp > 0xFF {
@@ -121,6 +117,7 @@ impl CPU {
         if self.get_vx(reg1) > self.get_vx(reg2) {
             self.set_vx(0xF, 1);
         }
+        self.set_vx(reg1, tmp);
     }
 
     pub fn shift_right(&mut self, reg: Register) {

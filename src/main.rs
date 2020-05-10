@@ -1,12 +1,7 @@
-// FIXME: These should be removed as soon as possible
-// They are here only to allow for cleaner build logs. As of right now, there are many things yet to be implemented and used, and lots of warnings because of that
-#![allow(dead_code)]
-#![allow(unused_mut)]
-#![allow(unused_variables)]
-
 mod memory;
 mod cpu;
 mod instructions;
+mod display;
 mod chip8;
 
 use std::env;
@@ -32,4 +27,6 @@ fn main() {
     let mut chip8 = Chip8::new();
 
     chip8.load_rom(&data);
+
+    chip8.run();
 }
