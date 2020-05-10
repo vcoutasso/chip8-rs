@@ -22,8 +22,8 @@ struct Registers {
     //
     // Program counter. Stores currently executing address
     pc: Address,
-    // Stack pointer. Points to topmost level of the stack
-    sp: Register,
+    // Stack pointer. Points to topmost level of the stack (Actually, here it is an index to the topmost level of the stack)
+    sp: usize,
 }
 
 /// Chip-8's CPU
@@ -37,15 +37,106 @@ pub struct CPU {
 impl CPU {
     pub fn new() -> CPU {
         // Initializes all registers with 0
-        let mut reg = Registers { vx: [0; 0x10], i: 0, dt: 0, st: 0, pc: PROGRAM_START, sp:0 };
-        // 16 bytes means up to 16 levels of nested routines
+        let mut reg = Registers { vx: [0; 0x10], i: 0, dt: 0, st: 0, pc: PROGRAM_START, sp: 0 };
+        // 16 bytes means up to 16 levels of nested routines. This is the original value so I will be using it
         let mut stack: Vec<Address> = vec![0; 0x10];
 
         CPU { reg , stack }
     }
 
-    pub fn program_counter(&self) -> u16 {
+    pub fn get_vx(&self, x: Register) -> u8 {
+       self.reg.vx[x as usize]
+    }
+
+    pub fn set_vx(&mut self, x: Register, byte: u8) {
+       self.reg.vx[x as usize] = byte;
+    }
+
+    pub fn add_vx(&mut self, x: Register, byte: u8) {
+       self.reg.vx[x as usize] += byte;
+    }
+
+    // Every time PC is read it is incremented
+    pub fn get_pc(&self) -> Address {
         self.reg.pc
     }
 
+    pub fn get_dt(&self) -> u8 {
+        self.reg.dt
+    }
+
+    pub fn get_st(&self) -> u8 {
+        self.reg.st
+    }
+
+    pub fn get_i(&self) -> u16 {
+        self.reg.i
+    }
+
+    pub fn set_dt(&mut self, reg: Register) {
+        self.reg.dt = self.get_vx(reg);
+    }
+
+    pub fn set_st(&mut self, reg: Register) {
+        self.reg.st = self.get_vx(reg);
+    }
+
+    pub fn set_i(&mut self, addr: Address) {
+        self.reg.i = addr;
+    }
+
+    pub fn subroutine_return(&mut self) {
+        self.reg.pc = self.stack[self.reg.sp];
+        self.reg.sp -= 1;
+    }
+
+    pub fn jump(&mut self, addr: Address) {
+        self.reg.pc = addr;
+    }
+
+    pub fn call(&mut self, addr: Address) {
+        self.reg.sp += 1;
+        self.stack[self.reg.sp] = self.reg.pc;
+        self.reg.pc = addr;
+    }
+
+    pub fn skip_instruction(&mut self) {
+        self.reg.pc += 2;
+    }
+
+    pub fn copy_reg(&mut self, reg1: Register, reg2: Register) {
+        self.set_vx(reg1, self.get_vx(reg2));
+    }
+
+    pub fn add(&mut self, reg1: Register, reg2: Register) {
+        let tmp = self.get_vx(reg1) as u16 + self.get_vx(reg2) as u16;
+        if tmp > 0xFF {
+            self.set_vx(0xF, 1);
+        }
+        self.set_vx(reg1, (tmp % 0x100) as u8);
+    }
+
+    pub fn sub(&mut self, reg1: Register, reg2: Register) {
+        let tmp = self.get_vx(reg1) - self.get_vx(reg2);
+        if self.get_vx(reg1) > self.get_vx(reg2) {
+            self.set_vx(0xF, 1);
+        }
+    }
+
+    pub fn shift_right(&mut self, reg: Register) {
+        // Store lsb prior to shift
+        self.set_vx(0xF, self.get_vx(reg) & 0x01);
+        self.set_vx(reg, self.get_vx(reg) >> 1);
+    }
+
+    pub fn shift_left(&mut self, reg: Register) {
+        // Store msb prior to shift
+        self.set_vx(0xF, self.get_vx(reg) & 0x80);
+        self.set_vx(reg, self.get_vx(reg) << 1);
+    }
+
+    pub fn set_sprite_i(&mut self, byte: u8) {
+        // Each sprite occupies 5 bytes of memory. They are placed in order, so to get the address of a digit's first byte in memory, we can multiply its value by 5
+        self.set_i((byte * 5) as u16);
+    }
 }

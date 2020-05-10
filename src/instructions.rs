@@ -20,9 +20,9 @@ pub enum Instructions {
     Xor(Register, Register),
     Add(Register, Register),
     Sub(Register, Register),
-    DivTwo(Register),
+    ShiftRight(Register),
     ReverseSub(Register, Register),
-    MultTwo(Register),
+    ShiftLeft(Register),
     SkipIfNotEquals(Register, Register),
     SetI(Address),
     JumpPlusV0(Address),
@@ -47,7 +47,9 @@ impl Instructions {
         let last_digit: u8 = (raw & 0xF) as u8;
         // Least significant byte (last two digits)
         let ls_byte: u8 = (raw & 0xFF) as u8;
-        // I am borrowing the terminology for variable names from Cowgod's Technical Reference
+        // I am borrowing the terminology from Cowgod's Technical Reference for the variables below
+        //
+        // Last three digits. Always refer to a memory address
         let nnn: u16 = raw & 0xFFF;
         // Second most significant digit
         let x: u8 = ((raw >> 8) & 0xF) as u8;
@@ -82,9 +84,9 @@ impl Instructions {
                     0x3 => Some(Xor(x, y)),
                     0x4 => Some(Add(x, y)),
                     0x5 => Some(Sub(x, y)),
-                    0x6 => Some(DivTwo(x)),
+                    0x6 => Some(ShiftRight(x)),
                     0x7 => Some(ReverseSub(x, y)),
-                    0xE => Some(MultTwo(x)),
+                    0xE => Some(ShiftLeft(x)),
                     _ => None,
                 }
             }

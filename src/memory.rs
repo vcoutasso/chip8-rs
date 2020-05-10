@@ -1,3 +1,5 @@
+use crate::chip8::Address;
+
 // Struct that represents the RAM memory of the machine
 pub struct Memory {
     ram: [u8; 0x1000],
@@ -46,11 +48,11 @@ impl Memory {
         }
     }
 
-    pub fn write_byte(&mut self, index: usize, byte: u8) {
-        self.ram[index] = byte;
+    pub fn write_byte(&mut self, index: Address, byte: u8) {
+        self.ram[index as usize] = byte;
     }
 
-    pub fn read_byte(&mut self, index: usize) -> u8{
-        self.ram[index]
+    pub fn read_byte(&mut self, index: Address) -> u8{
+        self.ram[index as usize]
     }
 }
