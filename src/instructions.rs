@@ -2,42 +2,76 @@ use crate::chip8::{Address, Register};
 
 use Instructions::*;
 
-/// All the Chip-8 instructions, with the exception of 0nnn, which is ignored by modern interpreters
+/// All the Chip-8 instructions, with the exception of 0nnn, which is ignored by modern interpreters including this one
 #[derive(Debug)]
 pub enum Instructions {
+    /// Clear display
     ClearDisplay,
+    /// Return from subroutine
     Return,
+    /// Jump to Address
     Jump(Address),
+    /// Call subroutine at Address
     Call(Address),
+    /// Skip next instruction if value of vx equals nn
     SkipIfEqualsByte(Register, u8),
+    /// Skip next instruction if value of vx is not equal to nn
     SkipIfNotEqualsByte(Register, u8),
+    /// Skip next instruction if value of vx equals value of vy
     SkipIfEquals(Register, Register),
+    /// Sets vx to nn
     SetRegisterByte(Register, u8),
+    /// Sets vx to (vx + nn)
     AddByte(Register, u8),
+    /// Sets vx to the value of vy
     SetRegister(Register, Register),
+    /// Stores the result of vx | vy in vx
     Or(Register, Register),
+    /// Stores the result of vx & vy in vx
     And(Register, Register),
+    /// Stores the result of vx ^ vy in vx
     Xor(Register, Register),
+    /// Sets vx value to (vx + vy)
     Add(Register, Register),
+    /// Sets vx value to (vx - vy)
     Sub(Register, Register),
+    /// Shifts vx one bit to the right
     ShiftRight(Register),
+    /// Sets vx to (vy - vx)
     ReverseSub(Register, Register),
+    /// Shifts vx one bit to the left
     ShiftLeft(Register),
+    /// Skip next instruction if value of vx is not equal to the value of vy
     SkipIfNotEquals(Register, Register),
+    /// Sets the register I to Address
     SetI(Address),
+    /// Jumps to (Address + v0)
     JumpPlusV0(Address),
+    /// Sets the result of (random_byte & nn) to vx
     SetRandAnd(Register, u8),
+    /// Draws a sprite of width 8 and height n at coordinate (x, y)
     Draw(Register, Register, u8),
+    /// Skip next instruction if key pressed equals the value of vx
     SkipIfKeyPressed(Register),
+    /// Skip next instruction if key pressed is not equal to the value of vx
     SkipIfKeyNotPressed(Register),
+    /// Sets vx to the value of the delay timer (dt)
     SetToDelayTimer(Register),
+    /// Waits for a key press. (Blocking instruction)
     WaitKeyPress(Register),
+    /// Sets delay timer (dt) to the value of vx
     SetDelayTimer(Register),
+    /// Sets sound timer (st) to the value of vx
     SetSoundTimer(Register),
+    /// Adds vx to i register
     AddRegisterI(Register),
+    /// Sets i register to the memory address of the sprite for the character in vx
     SetSpriteI(u8),
+    /// Binary-coded decimal representation. Stores the most significant digit of vx to i, the middle digit to i+1 and the last digit to i+2
     BCDRepresentation(Register),
+    /// Copies the values of the registers v0 to vx(inclusive) in memory starting at the address of i
     CopyRegistersMemory(Register),
+    /// Sets the values of the register v0 to vx(inclusive) with the values from memory starting at the addres of i
     SetRegistersMemory(Register),
 }
 

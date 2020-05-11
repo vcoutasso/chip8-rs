@@ -3,31 +3,31 @@ use crate::chip8::{Address, Register};
 
 /// This struct holds all CPU registers
 struct Registers {
-    // General purpose register V0 to VF
-    // VF is normally used as a flag
+    /// General purpose register V0 to VF
+    /// VF is normally used as a flag
     vx: [Register; 0x10],
-    // Stores memory addresses
+    /// Stores memory addresses
     i: Address,
-    // Special purpose registers. Both DT and ST decrement by one at a rate of DEC_RATE [Hz]
-    //
-    // Delay timer. Delay timer activates whenever this register is non-zero.
+    /// Special purpose registers. Both DT and ST decrement by one at a rate of DEC_RATE [Hz]
+    ///
+    /// Delay timer. Delay timer activates whenever this register is non-zero.
     dt: Register,
-    // Sound timer. Sound timer activates whenever this register is non-zero.
-    // As long as ST has a value greater than zero, the Chip-8 buzzer will beep
+    /// Sound timer. Sound timer activates whenever this register is non-zero.
+    /// As long as ST has a value greater than zero, the Chip-8 buzzer will beep
     st: Register,
-    // pseudo-registers below are not accessable from programs
-    //
-    // Program counter. Stores currently executing address
+    /// pseudo-registers below are not accessable from programs
+    ///
+    /// Program counter. Stores currently executing address
     pc: Address,
-    // Stack pointer. Points to topmost level of the stack (Actually, here it is an index to the topmost level of the stack)
+    /// Stack pointer. Points to topmost level of the stack (Actually, here it is an index to the topmost level of the stack)
     sp: usize,
 }
 
 /// Chip-8's CPU
 pub struct CPU {
-    // CPU's registers
+    /// CPU's registers
     reg: Registers,
-    // The stack is used to store the address that the interpreter should return when done with a subroutine
+    /// The stack is used to store the address that the interpreter should return when done with a subroutine
     stack: Vec<Address>,
 }
 
@@ -36,7 +36,7 @@ impl CPU {
         // Initializes all registers with 0
         let reg = Registers {
             vx: [0; 0x10],
-            i: 0,
+            i:  0,
             dt: 0,
             st: 0,
             pc: PROGRAM_START,

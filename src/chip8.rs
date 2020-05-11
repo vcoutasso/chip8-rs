@@ -29,17 +29,20 @@ pub const WINDOW_SCALE: usize = 8;
 /// Color of the pixel
 pub const PIXEL_COLOR: u32 = 0x00FF_FFFF;
 /// Instructions per second. 60 is the target fps and the value that it multiplies is the amount of instructions per frame
-pub const CLOCK: u32 = 60 * 50;
+pub const CLOCK: u32 = 60 * 25;
 /// Length of the coord buffer. This value represents the amount of pixels the original CHIP-8 had
 pub const COORD_LENGTH: usize = ORIGINAL_WIDTH * ORIGINAL_HEIGHT;
 
+/// This struct ties together all components of the emulator.
 pub struct Chip8 {
-    // The memory. Notable addresses:
-    // 0x000 to 0x80 - Used to store default font sprites (0-F sequentially)
-    // 0x200 - Start of most Chip-8 programs
-    // 0xFFF - End of Chip-8 RAM
+    /// The memory. Notable addresses:
+    /// 0x000 to 0x4F - Used to store default font sprites (0-F sequentially)
+    /// 0x200 - Start of most Chip-8 programs
+    /// 0xFFF - End of Chip-8 RAM
     ram: Memory,
+    /// CPU. Handles registers and instructions
     cpu: CPU,
+    /// User interface. Handles keyboard input and graphics output
     display: Display,
 }
 
@@ -73,10 +76,8 @@ impl Chip8 {
     }
 
     pub fn load_rom(&mut self, rom: &[u8]) {
-        let curr_pc = self.cpu.get_pc();
-
         for (i, byte) in rom.iter().enumerate() {
-            self.ram.write_byte(curr_pc + i as Address, *byte);
+            self.ram.write_byte(PROGRAM_START + i as Address, *byte);
         }
     }
 
@@ -187,7 +188,7 @@ impl Chip8 {
                     // Loop exit condition
                     key == None
                 } {
-                    sleep(Duration::from_micros(10));
+                    sleep(Duration::from_millis(1));
                 }
             }
             Instructions::SetDelayTimer(reg) => self.cpu.set_dt(reg),
