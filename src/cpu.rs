@@ -53,7 +53,7 @@ impl CPU {
     }
 
     pub fn add_vx(&mut self, x: Register, byte: u8) {
-       self.reg.vx[x as usize] += byte;
+       self.reg.vx[x as usize] = self.reg.vx[x as usize].wrapping_add(byte);
     }
 
     // Every time PC is read it is incremented
@@ -91,7 +91,9 @@ impl CPU {
     }
 
     pub fn jump(&mut self, addr: Address) {
-        self.reg.pc = addr;
+        // After the instruction is dealed with, pc will be incremented by 2
+        // Therefore, it will land right at addr with the current value that pc is attributed
+        self.reg.pc = addr - 2;
     }
 
     pub fn call(&mut self, addr: Address) {
@@ -105,7 +107,7 @@ impl CPU {
     }
 
     pub fn add(&mut self, reg1: Register, reg2: Register) {
-        let tmp = self.get_vx(reg1) as u16 + self.get_vx(reg2) as u16;
+        let tmp = self.get_vx(reg1).wrapping_add(self.get_vx(reg2)) as u16;
         if tmp > 0xFF {
             self.set_vx(0xF, 1);
         }
@@ -113,7 +115,7 @@ impl CPU {
     }
 
     pub fn sub(&mut self, reg1: Register, reg2: Register) {
-        let tmp = self.get_vx(reg1) - self.get_vx(reg2);
+        let tmp = self.get_vx(reg1).wrapping_sub(self.get_vx(reg2));
         if self.get_vx(reg1) > self.get_vx(reg2) {
             self.set_vx(0xF, 1);
         }
@@ -135,5 +137,15 @@ impl CPU {
     pub fn set_sprite_i(&mut self, byte: u8) {
         // Each sprite occupies 5 bytes of memory. They are placed in order, so to get the address of a digit's first byte in memory, we can multiply its value by 5
         self.set_i((byte * 5) as u16);
+    }
+
+    pub fn tick_timers(&mut self) {
+        if self.reg.dt != 0 {
+            //println!("dt = {}", self.reg.dt);
+            self.reg.dt -= 1;
+        }
+        if self.reg.st != 0 {
+            self.reg.st -= 1;
+        }
     }
 }

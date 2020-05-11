@@ -7,6 +7,8 @@ use crate::keyboard::Keyboard;
 use crate::instructions::Instructions;
 
 use rand::random;
+use std::time::{Duration, Instant};
+use std::thread::sleep;
 
 /// Type aliases
 ///
@@ -24,7 +26,11 @@ pub const ORIGINAL_WIDTH: usize = 64;
 /// Window height of the original CHIP-8.
 pub const ORIGINAL_HEIGHT: usize = 32;
 /// Scale for the window size of the emulator. Since 64x32 is too tiny of a window for today's screens, a scale is necessary
-pub const WINDOW_SCALE: usize = 16;
+pub const WINDOW_SCALE: usize = 8;
+/// Color of the pixel
+pub const PIXEL_COLOR: u32 = 0x00FF_FFFF;
+/// Instructions per second. 60 is the target fps and the value that it multiplies is the amount of instructions per frame
+pub const CLOCK: u32 = 60 * 20;
 
 pub struct Chip8 {
     // The memory. Notable addresses:
@@ -43,9 +49,16 @@ impl Chip8 {
     }
 
     pub fn run(&mut self) {
+        let mut timer = Instant::now();
+        let period = Duration::from_secs_f32(1.0 / CLOCK as f32);
         while self.display.is_window_open() {
             self.run_next_instruction();
-            self.display.draw();
+            if timer.elapsed().as_micros() > 16667 {
+                timer = Instant::now();
+                self.cpu.tick_timers();
+                self.display.draw();
+            }
+            sleep(period);
         }
     }
 
@@ -84,6 +97,7 @@ impl Chip8 {
             Instructions::SkipIfEqualsByte(reg, byte) => {
                 if self.cpu.get_vx(reg) == byte {
                     self.cpu.skip_instruction();
+                    self.cpu.skip_instruction();
                 }
             }
             Instructions::SkipIfNotEqualsByte(reg, byte) => {
@@ -119,12 +133,21 @@ impl Chip8 {
                 let curr_i = self.cpu.get_i();
                 let x = self.cpu.get_vx(reg1) as usize;
                 let y = self.cpu.get_vx(reg2) as usize;
+                let mut collision = 0;
                 for j in 0..n {
-                    let byte = self.ram.read_byte(curr_i + j as u16);
+                    let byte: u8 = self.ram.read_byte(curr_i + j as u16);
                     for k in 0..8 {
-                        self.display.coord[ORIGINAL_WIDTH * (y + j as usize) + x + k as usize] ^= (byte >> (7 - k)) & 0x01;
+                        let idx = ORIGINAL_WIDTH * (y + j as usize) + x + k as usize;
+                        let idx = idx % (ORIGINAL_WIDTH * ORIGINAL_HEIGHT);
+                        if self.display.coord[idx] == 1 && ((byte >> (7 - k)) & 0x01) == 1 {
+                            collision = 1;
+                        }
+                        self.display.coord[idx] ^= (byte >> (7 - k)) & 0x01;
                     }
                 }
+                self.display.map_pixels();
+                self.cpu.set_vx(0xF, collision);
+                //println!("{}", collision);
             },
             Instructions::SkipIfKeyPressed(reg) => {
                 if self.keyboard.get_key_pressed() == Some(self.cpu.get_vx(reg)) {
@@ -151,15 +174,17 @@ impl Chip8 {
             },
             Instructions::SetDelayTimer(reg) => self.cpu.set_dt(reg),
             Instructions::SetSoundTimer(reg) => self.cpu.set_st(reg),
-            Instructions::AddRegisterI(reg) => self.cpu.set_i(self.cpu.get_i() + self.cpu.get_vx(reg) as u16),
+            Instructions::AddRegisterI(reg) => self.cpu.set_i((self.cpu.get_i() + self.cpu.get_vx(reg) as u16) % 0x1000),
             Instructions::SetSpriteI(byte) => self.cpu.set_sprite_i(byte),
             Instructions::BCDRepresentation(reg) => {
                 let curr_i = self.cpu.get_i();
                 let value = self.cpu.get_vx(reg);
                 // Representation of value digit by digit
-                let first_digit = (value / 100) % 10;
-                let second_digit = (value / 10) % 10;
+                println!("{}", value);
+                let first_digit = value / 100;
+                let second_digit = (value % 100) / 10;
                 let third_digit = value % 10;
+                println!("{} {} {}", first_digit, second_digit, third_digit);
 
                 self.ram.write_byte(curr_i, first_digit);
                 self.ram.write_byte(curr_i + 1, second_digit);

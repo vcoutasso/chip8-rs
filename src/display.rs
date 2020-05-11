@@ -1,7 +1,7 @@
 extern crate minifb;
 
 use minifb::{Window, WindowOptions};
-use crate::chip8::{WINDOW_SCALE, ORIGINAL_WIDTH};
+use crate::chip8::{WINDOW_SCALE, ORIGINAL_WIDTH, ORIGINAL_HEIGHT, PIXEL_COLOR};
 
 pub struct Display {
     pub buffer: Vec<u32>,
@@ -17,15 +17,17 @@ impl Display {
         let buffer = vec![0; width * height];
         let coord = vec![0; 64 * 32];
 
-        let mut window = Window::new("CHIP-8 Emulator", width, height, WindowOptions::default()).expect("Error creating window");
-
-        // Limit refresh rate to 60fps
-        window.limit_update_rate(Some(std::time::Duration::from_micros(16667)));
+        let window = Window::new("CHIP-8 Emulator", width, height, WindowOptions::default()).expect("Error creating window");
 
         Display { buffer, coord, window, window_width: width, window_height: height }
     }
 
     pub fn draw(&mut self) {
+        self.window.update_with_buffer(&self.buffer, self.window_width, self.window_height).expect("Error drawing to window");
+        self.window.update();
+    }
+
+    pub fn map_pixels(&mut self) {
         for (i, pixel) in self.coord.iter().enumerate() {
             let x = (i % ORIGINAL_WIDTH) * WINDOW_SCALE;
             let y = (i / ORIGINAL_WIDTH) * WINDOW_SCALE;
@@ -33,22 +35,16 @@ impl Display {
             // Update buffer to reflect on the changes made to the original virtual window that self.coord represents
             for j in 0..WINDOW_SCALE {
                 for k in 0..WINDOW_SCALE {
-                    if *pixel == 1 {
-                        self.buffer[ORIGINAL_WIDTH * WINDOW_SCALE * (y + j as usize) + x + k as usize] = 0x00FF_FFFF;
-                    }
-                    else {
-                        self.buffer[ORIGINAL_WIDTH * WINDOW_SCALE * (y + j as usize) + x + k as usize] = 0x00;
-                    }
+                    let idx = ORIGINAL_WIDTH * WINDOW_SCALE * (y + j as usize) + x + k as usize;
+                    let idx = idx % (ORIGINAL_WIDTH * WINDOW_SCALE * ORIGINAL_HEIGHT * WINDOW_SCALE);
+                    self.buffer[idx] = if *pixel == 1 { PIXEL_COLOR } else { 0x0 };
                 }
             }
         }
-
-        self.window.update_with_buffer(&self.buffer, self.window_width, self.window_height).expect("Error drawing to window");
-        //self.window.update();
     }
 
     pub fn is_window_open(&self) -> bool{
-        self.window.is_open()
+        self.window.is_open() && !self.window.is_key_down(minifb::Key::Escape)
     }
 
     pub fn clear(&mut self) {
