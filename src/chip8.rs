@@ -3,6 +3,7 @@ extern crate rand;
 use crate::memory::Memory;
 use crate::cpu::CPU;
 use crate::display::Display;
+use crate::keyboard::Keyboard;
 use crate::instructions::Instructions;
 
 use rand::random;
@@ -18,10 +19,12 @@ pub type Register = u8;
 ///
 /// Program start address
 pub const PROGRAM_START: u16 = 0x200;
-/// Window width. Original value is 64, but since it is too tiny I chose 1024 (pixels are 16 times bigger)
-pub const WINDOW_WIDTH: usize = 1024;
-/// Window height. Original value is 32, scaled to match with WINDOW_WIDTH
-pub const WINDOW_HEIGHT: usize = 512;
+/// Window width of the original CHIP-8.
+pub const ORIGINAL_WIDTH: usize = 64;
+/// Window height of the original CHIP-8.
+pub const ORIGINAL_HEIGHT: usize = 32;
+/// Scale for the window size of the emulator. Since 64x32 is too tiny of a window for today's screens, a scale is necessary
+pub const WINDOW_SCALE: usize = 16;
 
 pub struct Chip8 {
     // The memory. Notable addresses:
@@ -31,11 +34,12 @@ pub struct Chip8 {
     ram: Memory,
     cpu: CPU,
     display: Display,
+    keyboard: Keyboard,
 }
 
 impl Chip8 {
     pub fn new() -> Chip8 {
-        Chip8 { ram: Memory::new(), cpu: CPU::new() , display: Display::new(WINDOW_WIDTH, WINDOW_HEIGHT) }
+        Chip8 { ram: Memory::new(), cpu: CPU::new() , display: Display::new(ORIGINAL_WIDTH * WINDOW_SCALE, ORIGINAL_HEIGHT * WINDOW_SCALE), keyboard: Keyboard::new() }
     }
 
     pub fn run(&mut self) {
@@ -66,6 +70,7 @@ impl Chip8 {
         let next_inst = self.get_next_instruction();
 
         if let Some(inst) = next_inst {
+            //println!("{:?}", inst);
             self.run_instruction(inst);
         }
     }
@@ -110,11 +115,40 @@ impl Chip8 {
             Instructions::SetI(addr) => self.cpu.set_i(addr),
             Instructions::JumpPlusV0(addr) => self.cpu.jump(addr + self.cpu.get_vx(0x0) as u16),
             Instructions::SetRandAnd(reg, byte) => self.cpu.set_vx(reg, byte & random::<u8>()),
-            Instructions::Draw(reg1, reg2, n) => {},
-            Instructions::SkipIfKeyPressed(reg) => {},
-            Instructions::SkipIfKeyNotPressed(reg) => {},
+            Instructions::Draw(reg1, reg2, n) => {
+                let curr_i = self.cpu.get_i();
+                let x = self.cpu.get_vx(reg1) as usize;
+                let y = self.cpu.get_vx(reg2) as usize;
+                for j in 0..n {
+                    let byte = self.ram.read_byte(curr_i + j as u16);
+                    for k in 0..8 {
+                        self.display.coord[ORIGINAL_WIDTH * (y + j as usize) + x + k as usize] ^= (byte >> (7 - k)) & 0x01;
+                    }
+                }
+            },
+            Instructions::SkipIfKeyPressed(reg) => {
+                if self.keyboard.get_key_pressed() == Some(self.cpu.get_vx(reg)) {
+                   self.cpu.skip_instruction();
+                }
+            },
+            Instructions::SkipIfKeyNotPressed(reg) => {
+                if self.keyboard.get_key_pressed() != Some(self.cpu.get_vx(reg)) {
+                   self.cpu.skip_instruction();
+                }
+            },
             Instructions::SetToDelayTimer(reg) => self.cpu.set_vx(reg, self.cpu.get_dt()),
-            Instructions::GetKeyPress(reg) => {},
+            Instructions::WaitKeyPress(reg) => {
+                while {
+                    let key = self.display.get_key_pressed();
+                    if let Some(pressed) = key {
+                        self.keyboard.set_key_pressed(key);
+                        self.cpu.set_vx(reg, pressed);
+                    }
+
+                    // Loop exit condition
+                    key == None
+                } {}
+            },
             Instructions::SetDelayTimer(reg) => self.cpu.set_dt(reg),
             Instructions::SetSoundTimer(reg) => self.cpu.set_st(reg),
             Instructions::AddRegisterI(reg) => self.cpu.set_i(self.cpu.get_i() + self.cpu.get_vx(reg) as u16),

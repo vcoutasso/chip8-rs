@@ -31,7 +31,7 @@ pub enum Instructions {
     SkipIfKeyPressed(Register),
     SkipIfKeyNotPressed(Register),
     SetToDelayTimer(Register),
-    GetKeyPress(Register),
+    WaitKeyPress(Register),
     SetDelayTimer(Register),
     SetSoundTimer(Register),
     AddRegisterI(Register),
@@ -107,7 +107,7 @@ impl Instructions {
             }
             0xF => match ls_byte {
                 0x07 => Some(SetToDelayTimer(x)),
-                0x0A => Some(GetKeyPress(x)),
+                0x0A => Some(WaitKeyPress(x)),
                 0x15 => Some(SetDelayTimer(x)),
                 0x18 => Some(SetSoundTimer(x)),
                 0x1E => Some(AddRegisterI(x)),

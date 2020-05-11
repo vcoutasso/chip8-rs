@@ -2,6 +2,7 @@ mod memory;
 mod cpu;
 mod instructions;
 mod display;
+mod keyboard;
 mod chip8;
 
 use std::env;
