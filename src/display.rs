@@ -67,7 +67,7 @@ impl Display {
     }
 
     pub fn get_key_pressed(&self) -> Option<u8> {
-        let keys = self.window.get_keys_pressed(minifb::KeyRepeat::No);
+        let keys = self.window.get_keys_pressed(minifb::KeyRepeat::Yes);
         match keys {
             Some(vec) => match vec.iter().next() {
                 Some(minifb::Key::Q) => Some(0x1),
