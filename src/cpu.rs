@@ -1,8 +1,5 @@
 use crate::chip8::PROGRAM_START;
-use crate::chip8::{Register, Address};
-
-/// Decrement rate [Hz] of special purpose registers
-pub const DEC_RATE: u8 = 60;
+use crate::chip8::{Address, Register};
 
 /// This struct holds all CPU registers
 struct Registers {
@@ -37,23 +34,30 @@ pub struct CPU {
 impl CPU {
     pub fn new() -> CPU {
         // Initializes all registers with 0
-        let reg = Registers { vx: [0; 0x10], i: 0, dt: 0, st: 0, pc: PROGRAM_START, sp: 0 };
+        let reg = Registers {
+            vx: [0; 0x10],
+            i: 0,
+            dt: 0,
+            st: 0,
+            pc: PROGRAM_START,
+            sp: 0,
+        };
         // 16 bytes means up to 16 levels of nested routines. This is the original value so I will be using it
         let stack: Vec<Address> = vec![0; 0x10];
 
-        CPU { reg , stack }
+        CPU { reg, stack }
     }
 
     pub fn get_vx(&self, x: Register) -> u8 {
-       self.reg.vx[x as usize]
+        self.reg.vx[x as usize]
     }
 
     pub fn set_vx(&mut self, x: Register, byte: u8) {
-       self.reg.vx[x as usize] = byte;
+        self.reg.vx[x as usize] = byte;
     }
 
     pub fn add_vx(&mut self, x: Register, byte: u8) {
-       self.reg.vx[x as usize] = self.reg.vx[x as usize].wrapping_add(byte);
+        self.reg.vx[x as usize] = self.reg.vx[x as usize].wrapping_add(byte);
     }
 
     // Every time PC is read it is incremented
@@ -99,7 +103,7 @@ impl CPU {
     pub fn call(&mut self, addr: Address) {
         self.reg.sp += 1;
         self.stack[self.reg.sp] = self.reg.pc;
-        self.reg.pc = addr;
+        self.jump(addr);
     }
 
     pub fn skip_instruction(&mut self) {
@@ -107,19 +111,18 @@ impl CPU {
     }
 
     pub fn add(&mut self, reg1: Register, reg2: Register) {
-        let tmp = self.get_vx(reg1).wrapping_add(self.get_vx(reg2)) as u16;
-        if tmp > 0xFF {
+        // Check if overflow occurred
+        if self.get_vx(reg1).checked_add(self.get_vx(reg2)).is_none() {
             self.set_vx(0xF, 1);
         }
-        self.set_vx(reg1, (tmp % 0x100) as u8);
+        self.set_vx(reg1, self.get_vx(reg1).wrapping_add(self.get_vx(reg2)));
     }
 
     pub fn sub(&mut self, reg1: Register, reg2: Register) {
-        let tmp = self.get_vx(reg1).wrapping_sub(self.get_vx(reg2));
         if self.get_vx(reg1) > self.get_vx(reg2) {
             self.set_vx(0xF, 1);
         }
-        self.set_vx(reg1, tmp);
+        self.set_vx(reg1, self.get_vx(reg1).wrapping_sub(self.get_vx(reg2)));
     }
 
     pub fn shift_right(&mut self, reg: Register) {

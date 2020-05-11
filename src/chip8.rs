@@ -1,14 +1,14 @@
 extern crate rand;
 
-use crate::memory::Memory;
 use crate::cpu::CPU;
 use crate::display::Display;
-use crate::keyboard::Keyboard;
 use crate::instructions::Instructions;
+use crate::keyboard::Keyboard;
+use crate::memory::Memory;
 
 use rand::random;
-use std::time::{Duration, Instant};
 use std::thread::sleep;
+use std::time::{Duration, Instant};
 
 /// Type aliases
 ///
@@ -30,7 +30,7 @@ pub const WINDOW_SCALE: usize = 8;
 /// Color of the pixel
 pub const PIXEL_COLOR: u32 = 0x00FF_FFFF;
 /// Instructions per second. 60 is the target fps and the value that it multiplies is the amount of instructions per frame
-pub const CLOCK: u32 = 60 * 20;
+pub const CLOCK: u32 = 60 * 50;
 
 pub struct Chip8 {
     // The memory. Notable addresses:
@@ -45,7 +45,15 @@ pub struct Chip8 {
 
 impl Chip8 {
     pub fn new() -> Chip8 {
-        Chip8 { ram: Memory::new(), cpu: CPU::new() , display: Display::new(ORIGINAL_WIDTH * WINDOW_SCALE, ORIGINAL_HEIGHT * WINDOW_SCALE), keyboard: Keyboard::new() }
+        Chip8 {
+            ram: Memory::new(),
+            cpu: CPU::new(),
+            display: Display::new(
+                ORIGINAL_WIDTH * WINDOW_SCALE,
+                ORIGINAL_HEIGHT * WINDOW_SCALE,
+            ),
+            keyboard: Keyboard::new(),
+        }
     }
 
     pub fn run(&mut self) {
@@ -55,6 +63,9 @@ impl Chip8 {
             self.run_next_instruction();
             if timer.elapsed().as_micros() > 16667 {
                 timer = Instant::now();
+                if self.cpu.get_st() > 0 {
+                    // TODO: Play sound
+                }
                 self.cpu.tick_timers();
                 self.display.draw();
             }
@@ -97,7 +108,6 @@ impl Chip8 {
             Instructions::SkipIfEqualsByte(reg, byte) => {
                 if self.cpu.get_vx(reg) == byte {
                     self.cpu.skip_instruction();
-                    self.cpu.skip_instruction();
                 }
             }
             Instructions::SkipIfNotEqualsByte(reg, byte) => {
@@ -113,9 +123,15 @@ impl Chip8 {
             Instructions::SetRegisterByte(reg, byte) => self.cpu.set_vx(reg, byte),
             Instructions::AddByte(reg, byte) => self.cpu.add_vx(reg, byte),
             Instructions::SetRegister(reg1, reg2) => self.cpu.set_vx(reg1, self.cpu.get_vx(reg2)),
-            Instructions::And(reg1, reg2) => self.cpu.set_vx(reg1, self.cpu.get_vx(reg1) | self.cpu.get_vx(reg2)),
-            Instructions::Or(reg1, reg2) => self.cpu.set_vx(reg1, self.cpu.get_vx(reg1) & self.cpu.get_vx(reg2)),
-            Instructions::Xor(reg1, reg2) => self.cpu.set_vx(reg1, self.cpu.get_vx(reg1) ^ self.cpu.get_vx(reg2)),
+            Instructions::And(reg1, reg2) => self
+                .cpu
+                .set_vx(reg1, self.cpu.get_vx(reg1) & self.cpu.get_vx(reg2)),
+            Instructions::Or(reg1, reg2) => self
+                .cpu
+                .set_vx(reg1, self.cpu.get_vx(reg1) | self.cpu.get_vx(reg2)),
+            Instructions::Xor(reg1, reg2) => self
+                .cpu
+                .set_vx(reg1, self.cpu.get_vx(reg1) ^ self.cpu.get_vx(reg2)),
             Instructions::Add(reg1, reg2) => self.cpu.add(reg1, reg2),
             Instructions::Sub(reg1, reg2) => self.cpu.sub(reg1, reg2),
             Instructions::ShiftRight(reg) => self.cpu.shift_right(reg),
@@ -125,7 +141,7 @@ impl Chip8 {
                 if self.cpu.get_vx(reg1) != self.cpu.get_vx(reg2) {
                     self.cpu.skip_instruction();
                 }
-            },
+            }
             Instructions::SetI(addr) => self.cpu.set_i(addr),
             Instructions::JumpPlusV0(addr) => self.cpu.jump(addr + self.cpu.get_vx(0x0) as u16),
             Instructions::SetRandAnd(reg, byte) => self.cpu.set_vx(reg, byte & random::<u8>()),
@@ -148,17 +164,17 @@ impl Chip8 {
                 self.display.map_pixels();
                 self.cpu.set_vx(0xF, collision);
                 //println!("{}", collision);
-            },
+            }
             Instructions::SkipIfKeyPressed(reg) => {
-                if self.keyboard.get_key_pressed() == Some(self.cpu.get_vx(reg)) {
-                   self.cpu.skip_instruction();
+                if self.display.get_key_pressed() == Some(self.cpu.get_vx(reg)) {
+                    self.cpu.skip_instruction();
                 }
-            },
+            }
             Instructions::SkipIfKeyNotPressed(reg) => {
-                if self.keyboard.get_key_pressed() != Some(self.cpu.get_vx(reg)) {
-                   self.cpu.skip_instruction();
+                if self.display.get_key_pressed() != Some(self.cpu.get_vx(reg)) {
+                    self.cpu.skip_instruction();
                 }
-            },
+            }
             Instructions::SetToDelayTimer(reg) => self.cpu.set_vx(reg, self.cpu.get_dt()),
             Instructions::WaitKeyPress(reg) => {
                 while {
@@ -171,37 +187,37 @@ impl Chip8 {
                     // Loop exit condition
                     key == None
                 } {}
-            },
+            }
             Instructions::SetDelayTimer(reg) => self.cpu.set_dt(reg),
             Instructions::SetSoundTimer(reg) => self.cpu.set_st(reg),
-            Instructions::AddRegisterI(reg) => self.cpu.set_i((self.cpu.get_i() + self.cpu.get_vx(reg) as u16) % 0x1000),
+            Instructions::AddRegisterI(reg) => self
+                .cpu
+                .set_i((self.cpu.get_i() + self.cpu.get_vx(reg) as u16) % 0x1000),
             Instructions::SetSpriteI(byte) => self.cpu.set_sprite_i(byte),
             Instructions::BCDRepresentation(reg) => {
                 let curr_i = self.cpu.get_i();
                 let value = self.cpu.get_vx(reg);
                 // Representation of value digit by digit
-                println!("{}", value);
                 let first_digit = value / 100;
                 let second_digit = (value % 100) / 10;
                 let third_digit = value % 10;
-                println!("{} {} {}", first_digit, second_digit, third_digit);
 
                 self.ram.write_byte(curr_i, first_digit);
                 self.ram.write_byte(curr_i + 1, second_digit);
                 self.ram.write_byte(curr_i + 2, third_digit);
-            },
+            }
             Instructions::CopyRegistersMemory(reg) => {
                 let curr_i = self.cpu.get_i();
                 for j in 0..=reg {
                     self.ram.write_byte(curr_i + j as u16, self.cpu.get_vx(j));
                 }
-            },
+            }
             Instructions::SetRegistersMemory(reg) => {
                 let curr_i = self.cpu.get_i();
                 for j in 0..=reg {
                     self.cpu.set_vx(j, self.ram.read_byte(curr_i + j as u16));
                 }
-            },
+            }
         }
         // Next instruction
         self.cpu.skip_instruction();

@@ -57,45 +57,37 @@ impl Instructions {
         let y: u8 = ((raw >> 4) & 0xF) as u8;
 
         match first_digit {
-            0x0  => {
-                match ls_byte {
-                    0xE0 => Some(ClearDisplay),
-                    0xEE => Some(Return),
-                    _ => None,
-                }
-            }
+            0x0 if x == 0x0 => match ls_byte {
+                0xE0 => Some(ClearDisplay),
+                0xEE => Some(Return),
+                _ => None,
+            },
             0x1 => Some(Jump(nnn)),
             0x2 => Some(Call(nnn)),
             0x3 => Some(SkipIfEqualsByte(x, ls_byte)),
             0x4 => Some(SkipIfNotEqualsByte(x, ls_byte)),
-            0x5 => {
-                match last_digit {
-                    0x0 => Some(SkipIfEquals(x, y)),
-                    _ => None,
-                }
-            }
+            0x5 => match last_digit {
+                0x0 => Some(SkipIfEquals(x, y)),
+                _ => None,
+            },
             0x6 => Some(SetRegisterByte(x, ls_byte)),
             0x7 => Some(AddByte(x, ls_byte)),
-            0x8 => {
-                match last_digit {
-                    0x0 => Some(SetRegister(x, y)),
-                    0x1 => Some(Or(x, y)),
-                    0x2 => Some(And(x, y)),
-                    0x3 => Some(Xor(x, y)),
-                    0x4 => Some(Add(x, y)),
-                    0x5 => Some(Sub(x, y)),
-                    0x6 => Some(ShiftRight(x)),
-                    0x7 => Some(ReverseSub(x, y)),
-                    0xE => Some(ShiftLeft(x)),
-                    _ => None,
-                }
-            }
-            0x9 => {
-                match last_digit {
-                    0x0 => Some(SkipIfNotEquals(x, y)),
-                    _ => None,
-                }
-            }
+            0x8 => match last_digit {
+                0x0 => Some(SetRegister(x, y)),
+                0x1 => Some(Or(x, y)),
+                0x2 => Some(And(x, y)),
+                0x3 => Some(Xor(x, y)),
+                0x4 => Some(Add(x, y)),
+                0x5 => Some(Sub(x, y)),
+                0x6 => Some(ShiftRight(x)),
+                0x7 => Some(ReverseSub(x, y)),
+                0xE => Some(ShiftLeft(x)),
+                _ => None,
+            },
+            0x9 => match last_digit {
+                0x0 => Some(SkipIfNotEquals(x, y)),
+                _ => None,
+            },
             0xA => Some(SetI(nnn)),
             0xB => Some(JumpPlusV0(nnn)),
             0xC => Some(SetRandAnd(x, ls_byte)),
@@ -104,7 +96,7 @@ impl Instructions {
                 0x9E => Some(SkipIfKeyPressed(x)),
                 0xA1 => Some(SkipIfKeyNotPressed(x)),
                 _ => None,
-            }
+            },
             0xF => match ls_byte {
                 0x07 => Some(SetToDelayTimer(x)),
                 0x0A => Some(WaitKeyPress(x)),
@@ -116,7 +108,7 @@ impl Instructions {
                 0x55 => Some(CopyRegistersMemory(x)),
                 0x65 => Some(SetRegistersMemory(x)),
                 _ => None,
-            }
+            },
             _ => None,
         }
     }

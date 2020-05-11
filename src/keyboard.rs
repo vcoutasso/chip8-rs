@@ -1,5 +1,5 @@
 pub struct Keyboard {
-    key_pressed: Option<u8>
+    key_pressed: Option<u8>,
 }
 
 impl Keyboard {
@@ -11,7 +11,7 @@ impl Keyboard {
         self.key_pressed = key;
     }
 
-    pub fn get_key_pressed(&mut self) -> Option<u8>{
+    pub fn get_key_pressed(&mut self) -> Option<u8> {
         self.key_pressed
     }
 }

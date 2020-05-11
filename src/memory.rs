@@ -19,7 +19,7 @@ impl Memory {
     /// The occupied memory address range from 0x00 to 0x80
     fn load_font_sprites(&mut self) {
         // Default font sprites
-        let sprites: [[u8; 5]; 0x10]= [
+        let sprites: [[u8; 5]; 0x10] = [
             [0xF0, 0x90, 0x90, 0x90, 0xF0], // 0
             [0x20, 0x60, 0x20, 0x20, 0x70], // 1
             [0xF0, 0x10, 0xF0, 0x80, 0xF0], // 2
@@ -52,7 +52,7 @@ impl Memory {
         self.ram[index as usize] = byte;
     }
 
-    pub fn read_byte(&mut self, index: Address) -> u8{
+    pub fn read_byte(&mut self, index: Address) -> u8 {
         self.ram[index as usize]
     }
 }

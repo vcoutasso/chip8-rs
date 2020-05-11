@@ -1,14 +1,14 @@
-mod memory;
-mod cpu;
-mod instructions;
-mod display;
-mod keyboard;
 mod chip8;
+mod cpu;
+mod display;
+mod instructions;
+mod keyboard;
+mod memory;
 
 use std::env;
 use std::fs::File;
-use std::path::Path;
 use std::io::Read;
+use std::path::Path;
 
 use chip8::Chip8;
 
