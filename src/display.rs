@@ -4,11 +4,17 @@ use crate::chip8::{ORIGINAL_HEIGHT, ORIGINAL_WIDTH, PIXEL_COLOR, WINDOW_SCALE};
 use minifb::{Window, WindowOptions};
 
 pub struct Display {
-    pub buffer: Vec<u32>,
+    /// Buffer with pixel values of displayed window. The coordinates of coord are maped here according to WINDOW_SCALE
+    buffer: Vec<u32>,
     /// Original pixel coordinates
-    pub coord: Vec<u8>,
+    coord: Vec<u8>,
+    /// Stack to keep track of changes made do the screen. This allows for much faster scaling of the original window size
+    changes_stack: Vec<usize>,
+    /// Window that displays the graphics and handles input (keyboard)
     window: Window,
+    /// Window width. Product of ORIGINAL_WIDTH (64) and WINDOW_SCALE
     window_width: usize,
+    /// Window height. Product of ORIGINAL_HEIGHT (32) and WINDOW_SCALE
     window_height: usize,
 }
 
@@ -16,6 +22,7 @@ impl Display {
     pub fn new(width: usize, height: usize) -> Display {
         let buffer = vec![0; width * height];
         let coord = vec![0; 64 * 32];
+        let changes_stack = vec![];
 
         let window = Window::new("CHIP-8 Emulator", width, height, WindowOptions::default())
             .expect("Error creating window");
@@ -23,10 +30,20 @@ impl Display {
         Display {
             buffer,
             coord,
+            changes_stack,
             window,
             window_width: width,
             window_height: height,
         }
+    }
+
+    pub fn coord_at(&mut self, idx: usize) -> u8 {
+        self.coord[idx]
+    }
+
+    pub fn set_coord(&mut self, idx: usize, bit: u8) {
+        self.coord[idx] = bit;
+        self.changes_stack.push(idx);
     }
 
     pub fn draw(&mut self) {
@@ -40,17 +57,15 @@ impl Display {
     }
 
     pub fn map_pixels(&mut self) {
-        for (i, pixel) in self.coord.iter().enumerate() {
+        while let Some(i) = self.changes_stack.pop() {
             let x = (i % ORIGINAL_WIDTH) * WINDOW_SCALE;
             let y = (i / ORIGINAL_WIDTH) * WINDOW_SCALE;
 
             // Update buffer to reflect on the changes made to the original virtual window that self.coord represents
             for j in 0..WINDOW_SCALE {
                 for k in 0..WINDOW_SCALE {
-                    let idx = ORIGINAL_WIDTH * WINDOW_SCALE * (y + j as usize) + x + k as usize;
-                    let idx =
-                        idx % (ORIGINAL_WIDTH * WINDOW_SCALE * ORIGINAL_HEIGHT * WINDOW_SCALE);
-                    self.buffer[idx] = if *pixel == 1 { PIXEL_COLOR } else { 0x0 };
+                    let idx = (ORIGINAL_WIDTH * WINDOW_SCALE * (y + j as usize) + x + k as usize) % (ORIGINAL_WIDTH * WINDOW_SCALE * ORIGINAL_HEIGHT * WINDOW_SCALE);
+                    self.buffer[idx] = if self.coord[i] == 1 { PIXEL_COLOR } else { 0x0 };
                 }
             }
         }

@@ -62,7 +62,7 @@ impl Chip8 {
             self.run_next_instruction();
             if timer.elapsed().as_micros() > 16667 {
                 timer = Instant::now();
-                if self.cpu.get_st() > 0 {
+                if self.cpu.get_st() > 1 {
                     // TODO: Play sound
                 }
                 self.cpu.tick_timers();
@@ -154,9 +154,9 @@ impl Chip8 {
                     for k in 0..8 {
                         let idx =
                             (ORIGINAL_WIDTH * (y + j as usize) + x + k as usize) % COORD_LENGTH;
-                        let bit_before = self.display.coord[idx];
+                        let bit_before = self.display.coord_at(idx);
                         let bit_after = bit_before ^ ((byte >> (7 - k)) & 0x01);
-                        self.display.coord[idx] = bit_after;
+                        self.display.set_coord(idx, bit_after);
 
                         if (bit_before != bit_after) && bit_before == 1 {
                             self.cpu.set_vx(0xF, 1);
