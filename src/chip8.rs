@@ -3,7 +3,6 @@ extern crate rand;
 use crate::cpu::CPU;
 use crate::display::Display;
 use crate::instructions::Instructions;
-use crate::keyboard::Keyboard;
 use crate::memory::Memory;
 
 use rand::random;
@@ -31,16 +30,17 @@ pub const WINDOW_SCALE: usize = 8;
 pub const PIXEL_COLOR: u32 = 0x00FF_FFFF;
 /// Instructions per second. 60 is the target fps and the value that it multiplies is the amount of instructions per frame
 pub const CLOCK: u32 = 60 * 50;
+/// Length of the coord buffer. This value represents the amount of pixels the original CHIP-8 had
+pub const COORD_LENGTH: usize = ORIGINAL_WIDTH * ORIGINAL_HEIGHT;
 
 pub struct Chip8 {
     // The memory. Notable addresses:
-    // 0x000 to 0x1FF - Reserved for the interpreter originally. In this case, only 0x00 to 0x80 are used to store default font sprites
+    // 0x000 to 0x80 - Used to store default font sprites (0-F sequentially)
     // 0x200 - Start of most Chip-8 programs
     // 0xFFF - End of Chip-8 RAM
     ram: Memory,
     cpu: CPU,
     display: Display,
-    keyboard: Keyboard,
 }
 
 impl Chip8 {
@@ -52,7 +52,6 @@ impl Chip8 {
                 ORIGINAL_WIDTH * WINDOW_SCALE,
                 ORIGINAL_HEIGHT * WINDOW_SCALE,
             ),
-            keyboard: Keyboard::new(),
         }
     }
 
@@ -94,7 +93,6 @@ impl Chip8 {
         let next_inst = self.get_next_instruction();
 
         if let Some(inst) = next_inst {
-            //println!("{:?}", inst);
             self.run_instruction(inst);
         }
     }
@@ -149,21 +147,23 @@ impl Chip8 {
                 let curr_i = self.cpu.get_i();
                 let x = self.cpu.get_vx(reg1) as usize;
                 let y = self.cpu.get_vx(reg2) as usize;
-                let mut collision = 0;
+
+                self.cpu.set_vx(0xF, 0);
                 for j in 0..n {
                     let byte: u8 = self.ram.read_byte(curr_i + j as u16);
                     for k in 0..8 {
-                        let idx = ORIGINAL_WIDTH * (y + j as usize) + x + k as usize;
-                        let idx = idx % (ORIGINAL_WIDTH * ORIGINAL_HEIGHT);
-                        if self.display.coord[idx] == 1 && ((byte >> (7 - k)) & 0x01) == 1 {
-                            collision = 1;
+                        let idx =
+                            (ORIGINAL_WIDTH * (y + j as usize) + x + k as usize) % COORD_LENGTH;
+                        let bit_before = self.display.coord[idx];
+                        let bit_after = bit_before ^ ((byte >> (7 - k)) & 0x01);
+                        self.display.coord[idx] = bit_after;
+
+                        if (bit_before != bit_after) && bit_before == 1 {
+                            self.cpu.set_vx(0xF, 1);
                         }
-                        self.display.coord[idx] ^= (byte >> (7 - k)) & 0x01;
                     }
                 }
                 self.display.map_pixels();
-                self.cpu.set_vx(0xF, collision);
-                //println!("{}", collision);
             }
             Instructions::SkipIfKeyPressed(reg) => {
                 if self.display.get_key_pressed() == Some(self.cpu.get_vx(reg)) {
@@ -178,15 +178,17 @@ impl Chip8 {
             Instructions::SetToDelayTimer(reg) => self.cpu.set_vx(reg, self.cpu.get_dt()),
             Instructions::WaitKeyPress(reg) => {
                 while {
+                    self.display.update();
                     let key = self.display.get_key_pressed();
                     if let Some(pressed) = key {
-                        self.keyboard.set_key_pressed(key);
                         self.cpu.set_vx(reg, pressed);
                     }
 
                     // Loop exit condition
                     key == None
-                } {}
+                } {
+                    sleep(Duration::from_micros(10));
+                }
             }
             Instructions::SetDelayTimer(reg) => self.cpu.set_dt(reg),
             Instructions::SetSoundTimer(reg) => self.cpu.set_st(reg),

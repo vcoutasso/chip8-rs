@@ -144,7 +144,6 @@ impl CPU {
 
     pub fn tick_timers(&mut self) {
         if self.reg.dt != 0 {
-            //println!("dt = {}", self.reg.dt);
             self.reg.dt -= 1;
         }
         if self.reg.st != 0 {

@@ -35,6 +35,10 @@ impl Display {
             .expect("Error drawing to window");
     }
 
+    pub fn update(&mut self) {
+        self.window.update();
+    }
+
     pub fn map_pixels(&mut self) {
         for (i, pixel) in self.coord.iter().enumerate() {
             let x = (i % ORIGINAL_WIDTH) * WINDOW_SCALE;
@@ -57,13 +61,13 @@ impl Display {
     }
 
     pub fn clear(&mut self) {
-        self.coord.iter_mut().for_each(|x| *x = 0);
-        self.map_pixels();
+        self.coord = vec![0; self.coord.len()];
+        self.buffer = vec![0; self.buffer.len()];
         self.draw()
     }
 
     pub fn get_key_pressed(&self) -> Option<u8> {
-        let keys = self.window.get_keys_pressed(minifb::KeyRepeat::Yes);
+        let keys = self.window.get_keys_pressed(minifb::KeyRepeat::No);
         match keys {
             Some(vec) => match vec.iter().next() {
                 Some(minifb::Key::Q) => Some(0x1),
