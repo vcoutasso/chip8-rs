@@ -159,7 +159,7 @@ impl Chip8 {
                         let bit_after = bit_before ^ ((byte >> (7 - k)) & 0x01);
                         self.display.set_coord(idx, bit_after);
 
-                        if (bit_before != bit_after) && bit_before == 1 {
+                        if (bit_after != bit_before) && bit_before == 0 {
                             self.cpu.set_vx(0xF, 1);
                         }
                     }
@@ -196,7 +196,7 @@ impl Chip8 {
             Instructions::AddRegisterI(reg) => self
                 .cpu
                 .set_i((self.cpu.get_i() + self.cpu.get_vx(reg) as u16) % 0x1000),
-            Instructions::SetSpriteI(byte) => self.cpu.set_sprite_i(byte),
+            Instructions::SetSpriteI(reg) => self.cpu.set_sprite_i(self.cpu.get_vx(reg)),
             Instructions::BCDRepresentation(reg) => {
                 let curr_i = self.cpu.get_i();
                 let value = self.cpu.get_vx(reg);
