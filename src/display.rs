@@ -3,6 +3,8 @@ extern crate minifb;
 use crate::chip8::{ORIGINAL_HEIGHT, ORIGINAL_WIDTH, PIXEL_COLOR, WINDOW_SCALE};
 use minifb::{Window, WindowOptions};
 
+/// Interface between user and the CHIP8
+/// It handles graphics and keyboard input
 pub struct Display {
     /// Buffer with pixel values of displayed window. The coordinates of coord are maped here according to WINDOW_SCALE
     buffer: Vec<u32>,

@@ -23,7 +23,7 @@ struct Registers {
     sp: usize,
 }
 
-/// Chip-8's CPU
+/// Chip-8's CPU. Handles instructions and registers
 pub struct CPU {
     /// CPU's registers
     reg: Registers,
@@ -132,7 +132,7 @@ impl CPU {
 
     pub fn shift_left(&mut self, reg: Register) {
         // Store msb prior to shift
-        self.set_vx(0xF, self.get_vx(reg) & 0x80);
+        self.set_vx(0xF, self.get_vx(reg) >> 7);
         self.set_vx(reg, self.get_vx(reg) << 1);
     }
 

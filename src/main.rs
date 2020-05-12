@@ -16,13 +16,13 @@ fn main() {
 
     args.next();
 
-    let rom_path = args.next().expect("Did not get a rom path");
+    let rom_path = args.next().expect("Did not get path to ROM file");
     let rom_path = Path::new(&rom_path);
 
     let mut rom = File::open(rom_path).expect("Could not open file");
     let mut data: Vec<u8> = vec![];
 
-    rom.read_to_end(&mut data).expect("Error reading rom");
+    rom.read_to_end(&mut data).expect("Error reading ROM");
 
     let mut chip8 = Chip8::new();
 

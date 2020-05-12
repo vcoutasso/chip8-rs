@@ -1,6 +1,6 @@
 use crate::chip8::Address;
 
-// Struct that represents the RAM memory of the machine
+/// Struct that represents the RAM memory of the machine
 pub struct Memory {
     ram: [u8; 0x1000],
 }

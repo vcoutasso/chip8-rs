@@ -16,8 +16,8 @@ pub type Address = u16;
 /// Register is used when the value refers to the name of a vx register (x ranges from 0x0 to 0xF)
 pub type Register = u8;
 
-/// Constants
-///
+// Constants
+//
 /// Program start address
 pub const PROGRAM_START: u16 = 0x200;
 /// Window width of the original CHIP-8.
