@@ -64,7 +64,8 @@ impl Display {
             // Update buffer to reflect on the changes made to the original virtual window that self.coord represents
             for j in 0..WINDOW_SCALE {
                 for k in 0..WINDOW_SCALE {
-                    let idx = (ORIGINAL_WIDTH * WINDOW_SCALE * (y + j as usize) + x + k as usize) % (ORIGINAL_WIDTH * WINDOW_SCALE * ORIGINAL_HEIGHT * WINDOW_SCALE);
+                    let idx = (ORIGINAL_WIDTH * WINDOW_SCALE * (y + j as usize) + x + k as usize)
+                        % (ORIGINAL_WIDTH * WINDOW_SCALE * ORIGINAL_HEIGHT * WINDOW_SCALE);
                     self.buffer[idx] = if self.coord[i] == 1 { PIXEL_COLOR } else { 0x0 };
                 }
             }

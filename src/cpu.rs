@@ -36,7 +36,7 @@ impl CPU {
         // Initializes all registers with 0
         let reg = Registers {
             vx: [0; 0x10],
-            i:  0,
+            i: 0,
             dt: 0,
             st: 0,
             pc: PROGRAM_START,
@@ -111,18 +111,17 @@ impl CPU {
     }
 
     pub fn add(&mut self, reg1: Register, reg2: Register) {
+        let ans = self.get_vx(reg1) as u16 + self.get_vx(reg2) as u16;
         // Check if overflow occurred
-        if self.get_vx(reg1).checked_add(self.get_vx(reg2)).is_none() {
-            self.set_vx(0xF, 1);
-        }
-        self.set_vx(reg1, self.get_vx(reg1).wrapping_add(self.get_vx(reg2)));
+        self.set_vx(0xF, (ans > 255) as u8);
+        self.set_vx(reg1, ans as u8);
     }
 
     pub fn sub(&mut self, reg1: Register, reg2: Register) {
-        if self.get_vx(reg1) > self.get_vx(reg2) {
-            self.set_vx(0xF, 1);
-        }
-        self.set_vx(reg1, self.get_vx(reg1).wrapping_sub(self.get_vx(reg2)));
+        let ans = self.get_vx(reg1).wrapping_sub(self.get_vx(reg2));
+        // Check if overflow occurred
+        self.set_vx(0xF, (self.get_vx(reg1) > self.get_vx(reg2)) as u8);
+        self.set_vx(reg1, ans);
     }
 
     pub fn shift_right(&mut self, reg: Register) {

@@ -29,7 +29,7 @@ pub const WINDOW_SCALE: usize = 8;
 /// Color of the pixel
 pub const PIXEL_COLOR: u32 = 0x00FF_FFFF;
 /// Instructions per second. 60 is the target fps and the value that it multiplies is the amount of instructions per frame
-pub const CLOCK: u32 = 60 * 25;
+pub const CLOCK: u32 = 60 * 20;
 /// Length of the coord buffer. This value represents the amount of pixels the original CHIP-8 had
 pub const COORD_LENGTH: usize = ORIGINAL_WIDTH * ORIGINAL_HEIGHT;
 
@@ -156,10 +156,10 @@ impl Chip8 {
                         let idx =
                             (ORIGINAL_WIDTH * (y + j as usize) + x + k as usize) % COORD_LENGTH;
                         let bit_before = self.display.coord_at(idx);
-                        let bit_after = bit_before ^ ((byte >> (7 - k)) & 0x01);
+                        let bit_after = bit_before ^ (byte >> (7 - k) & 0x01);
                         self.display.set_coord(idx, bit_after);
 
-                        if (bit_after != bit_before) && bit_before == 0 {
+                        if (bit_after != bit_before) && bit_before == 1 {
                             self.cpu.set_vx(0xF, 1);
                         }
                     }
