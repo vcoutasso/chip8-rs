@@ -24,14 +24,18 @@ pub const PROGRAM_START: u16 = 0x200;
 pub const ORIGINAL_WIDTH: usize = 64;
 /// Window height of the original CHIP-8.
 pub const ORIGINAL_HEIGHT: usize = 32;
-/// Scale for the window size of the emulator. Since 64x32 is too tiny of a window for today's screens, a scale is necessary
-pub const WINDOW_SCALE: usize = 8;
-/// Color of the pixel
-pub const PIXEL_COLOR: u32 = 0x00FF_FFFF;
-/// Instructions per second. 60 is the target fps and the value that it multiplies is the amount of instructions per frame
-pub const CLOCK: u32 = 60 * 20;
 /// Length of the coord buffer. This value represents the amount of pixels the original CHIP-8 had
 pub const COORD_LENGTH: usize = ORIGINAL_WIDTH * ORIGINAL_HEIGHT;
+
+// The following constants cam be altered to change the emulator behavior
+//
+/// Scale for the window size of the emulator. Since 64x32 is too tiny of a window for today's screens, a scale is necessary
+/// Enlarges the window by a factor of WINDOW_SCALE
+pub const WINDOW_SCALE: usize = 8;
+/// Color of the pixel. White by default
+pub const PIXEL_COLOR: u32 = 0x00FF_FFFF;
+/// Clock speed (instructions per second).
+pub const CLOCK: u32 = 60 * 20;
 
 /// This struct ties together all components of the emulator.
 pub struct Chip8 {

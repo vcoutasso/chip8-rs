@@ -1,6 +1,22 @@
 # chip8-rs
 
-A CHIP-8 Emulator written in Rust.
+A CHIP-8 Emulator written in Rust. Currently working with the exception of sound.
+The Emulator's clock speed, window size and pixel size are configured through the use of constants defined in `chip8.rs`. Their values can be altered to change some behavior.
+
+## Building
+
+These instructions assume that both git and Rust toolchain are installed and available.
+
+``` sh
+$ git clone https://github.com/vcoutasso/chip8-rs ; cd bf-rs # Clone repository and cd into the directory
+$ cargo build --release # The release flag is optional but recommended
+```
+
+## Usage
+
+``` sh
+$ cargo run --release <PATH/TO/ROM>
+```
 
 ## Keypad
 
@@ -23,3 +39,14 @@ The following is the implemented layout that better fits the QWERTY keyboard lay
 | J | K | L | ; |
 
 
+## Screenshots
+
+The following are screenshots of the Emulator working with default settings on some well-known ROM files.
+
+![CHIP-8 Logo](screenshots/logo.png)
+![Screenshot Pong](screenshots/pong.png)
+![Screenshot Invaders](screenshots/invaders.png)
+
+## License
+
+This software is free to use under the MIT License. See [this reference](https://choosealicense.com/licenses/mit/) for more information.
