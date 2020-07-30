@@ -8,7 +8,7 @@ The Emulator's clock speed, window size and pixel size are configured through th
 These instructions assume that both git and Rust toolchain are installed and available.
 
 ``` sh
-$ git clone https://github.com/vcoutasso/chip8-rs ; cd bf-rs # Clone repository and cd into the directory
+$ git clone https://github.com/vcoutasso/chip8-rs ; cd chip8-rs # Clone repository and cd into the directory
 $ cargo build --release # The release flag is optional but recommended
 ```
 
