@@ -21,6 +21,8 @@ pub struct Display {
 }
 
 impl Display {
+
+    /// Creates a new display with size determined by the function parameters
     pub fn new(width: usize, height: usize) -> Display {
         let buffer = vec![0; width * height];
         let coord = vec![0; 64 * 32];
@@ -39,25 +41,30 @@ impl Display {
         }
     }
 
+    /// Get coordinate at index
     pub fn coord_at(&mut self, idx: usize) -> u8 {
         self.coord[idx]
     }
 
+    /// Set coordinate at index
     pub fn set_coord(&mut self, idx: usize, bit: u8) {
         self.coord[idx] = bit;
         self.changes_stack.push(idx);
     }
 
+    /// Draws buffer to window
     pub fn draw(&mut self) {
         self.window
             .update_with_buffer(&self.buffer, self.window_width, self.window_height)
             .expect("Error drawing to window");
     }
 
+    /// Updates window
     pub fn update(&mut self) {
         self.window.update();
     }
 
+    /// Maps pixels to represent the original window in a higher scale
     pub fn map_pixels(&mut self) {
         while let Some(i) = self.changes_stack.pop() {
             let x = (i % ORIGINAL_WIDTH) * WINDOW_SCALE;
@@ -74,16 +81,19 @@ impl Display {
         }
     }
 
+    /// Returns true if window is open and if ESC is not pressed
     pub fn is_window_open(&self) -> bool {
         self.window.is_open() && !self.window.is_key_down(minifb::Key::Escape)
     }
 
+    /// Clears the window
     pub fn clear(&mut self) {
         self.coord = vec![0; self.coord.len()];
         self.buffer = vec![0; self.buffer.len()];
         self.draw()
     }
 
+    /// Returns the key that was pressing. This is the function that maps the keyboard
     pub fn get_key_pressed(&self) -> Option<u8> {
         let keys = self.window.get_keys_pressed(minifb::KeyRepeat::Yes);
         match keys {
