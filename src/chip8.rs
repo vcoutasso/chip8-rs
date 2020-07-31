@@ -52,11 +52,12 @@ pub struct Chip8 {
     display: Display,
     /// Audio interface
     audio: Option<Sink>,
-
 }
 
 impl Chip8 {
     /// Creates and returns a new instance of the emulator.
+    /// For the audio interface, the default sound device is used.
+    /// If there is none, no sound will play.
     pub fn new() -> Chip8 {
         let device = rodio::default_output_device();
 
@@ -69,9 +70,12 @@ impl Chip8 {
             ),
             audio: match device {
                 Some(device) => {
+                    // If there is a sound device, create a source and add it to the sink (handle to the device)
                     let source = rodio::source::SineWave::new(440);
                     let sink = Sink::new(&device);
+                    // The beep is always the same, so we create it here add it to the sink
                     sink.append(source);
+                    // We must pause it to prevent it from playing right now
                     sink.pause();
                     Some(sink)
                 }
@@ -83,46 +87,63 @@ impl Chip8 {
         }
     }
 
+    /// Starts the emulator and executes instructions from the provided ROM
     pub fn run(&mut self) {
         let mut timer = Instant::now();
         let period = Duration::from_secs_f32(1.0 / CLOCK as f32);
+
+        // This is the emulator's main loop
         while self.display.is_window_open() {
+
+            // Every cycle we run a new instruction
             self.run_next_instruction();
+
             if timer.elapsed().as_micros() > 16667 {
                 timer = Instant::now();
+
+                // If st value is greater than 1, play beep sound
                 if self.cpu.get_st() > 1 {
                     match &self.audio {
                         Some(sink) => sink.play(),
                         None => (),
                     }
+                // Else, pause beep sound. sink.pause() has no effect if it is already paused
                 } else {
                     match &self.audio {
                         Some(sink) => sink.pause(),
                         None => (),
                     }
                 }
+
+                // Ticks the timers and updates display
                 self.cpu.tick_timers();
                 self.display.draw();
             }
+            // Waits for the clock to catch up
             sleep(period);
         }
     }
 
+    /// Loads ROM to RAM memory
     pub fn load_rom(&mut self, rom: &[u8]) {
         for (i, byte) in rom.iter().enumerate() {
             self.ram.write_byte(PROGRAM_START + i as Address, *byte);
         }
     }
 
+    /// Returns the next instruction to be executed
     fn get_next_instruction(&mut self) -> Option<Instructions> {
         let curr_pc = self.cpu.get_pc();
+        // Get MSB
         let ms_byte = self.ram.read_byte(curr_pc);
+        // Get LSB
         let ls_byte = self.ram.read_byte(curr_pc + 1);
         let opcode: u16 = ((ms_byte as u16) << 8) + ls_byte as u16;
 
         Instructions::new(opcode)
     }
 
+    /// Runs the next instruction
     pub fn run_next_instruction(&mut self) {
         let next_inst = self.get_next_instruction();
 
@@ -131,6 +152,7 @@ impl Chip8 {
         }
     }
 
+    /// This function receives a single instruction and properly executes it (according to CHIP8 techinical reference). Used by `run_next_instruction()`
     fn run_instruction(&mut self, inst: Instructions) {
         match inst {
             Instructions::ClearDisplay => self.display.clear(),
