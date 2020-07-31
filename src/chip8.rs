@@ -94,7 +94,6 @@ impl Chip8 {
 
         // This is the emulator's main loop
         while self.display.is_window_open() {
-
             // Every cycle we run a new instruction
             self.run_next_instruction();
 
