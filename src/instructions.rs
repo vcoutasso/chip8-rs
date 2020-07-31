@@ -76,6 +76,8 @@ pub enum Instructions {
 }
 
 impl Instructions {
+
+    /// Transforms the raw data from the ROM to an Instruction (one instruction at a time)
     pub fn new(raw: u16) -> Option<Instructions> {
         let first_digit: u8 = ((raw >> 12) & 0xF) as u8;
         let last_digit: u8 = (raw & 0xF) as u8;

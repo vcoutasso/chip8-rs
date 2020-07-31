@@ -6,6 +6,7 @@ pub struct Memory {
 }
 
 impl Memory {
+
     /// Creates a new instance of Memory with the default interpreter values
     pub fn new() -> Memory {
         let mut mem = Memory { ram: [0; 0x1000] };
@@ -48,10 +49,12 @@ impl Memory {
         }
     }
 
+    /// Writes byte to memory
     pub fn write_byte(&mut self, index: Address, byte: u8) {
         self.ram[index as usize] = byte;
     }
 
+    /// Reads byte from memory
     pub fn read_byte(&mut self, index: Address) -> u8 {
         self.ram[index as usize]
     }
