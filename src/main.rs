@@ -4,15 +4,14 @@ mod display;
 mod instructions;
 mod memory;
 
+use clap::{App, Arg};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use clap::{App, Arg};
 
 use chip8::Chip8;
 
 fn main() {
-
     // Info about the program and arguments
     let args = App::new("chip8")
         .version("0.1.0")

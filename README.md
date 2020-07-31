@@ -1,6 +1,6 @@
 # chip8-rs
 
-A CHIP-8 Emulator written in Rust. Currently working with the exception of sound.
+A CHIP-8 Emulator written in Rust. Everything, sound included, should be working fine.
 The Emulator's clock speed, window size and pixel size are configured through the use of constants defined in `chip8.rs`. Their values can be altered to change some behavior.
 
 ## Building

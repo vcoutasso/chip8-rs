@@ -9,6 +9,8 @@ use rand::random;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
+use rodio::Sink;
+
 /// Type aliases
 ///
 /// Address is used when the value refers to a position in memory
@@ -48,10 +50,16 @@ pub struct Chip8 {
     cpu: CPU,
     /// User interface. Handles keyboard input and graphics output
     display: Display,
+    /// Audio interface
+    audio: Option<Sink>,
+
 }
 
 impl Chip8 {
+    /// Creates and returns a new instance of the emulator.
     pub fn new() -> Chip8 {
+        let device = rodio::default_output_device();
+
         Chip8 {
             ram: Memory::new(),
             cpu: CPU::new(),
@@ -59,6 +67,19 @@ impl Chip8 {
                 ORIGINAL_WIDTH * WINDOW_SCALE,
                 ORIGINAL_HEIGHT * WINDOW_SCALE,
             ),
+            audio: match device {
+                Some(device) => {
+                    let source = rodio::source::SineWave::new(440);
+                    let sink = Sink::new(&device);
+                    sink.append(source);
+                    sink.pause();
+                    Some(sink)
+                }
+                None => {
+                    println!("No sound device available!");
+                    None
+                }
+            },
         }
     }
 
@@ -70,7 +91,15 @@ impl Chip8 {
             if timer.elapsed().as_micros() > 16667 {
                 timer = Instant::now();
                 if self.cpu.get_st() > 1 {
-                    // TODO: Play sound
+                    match &self.audio {
+                        Some(sink) => sink.play(),
+                        None => (),
+                    }
+                } else {
+                    match &self.audio {
+                        Some(sink) => sink.pause(),
+                        None => (),
+                    }
                 }
                 self.cpu.tick_timers();
                 self.display.draw();
