@@ -44,7 +44,9 @@ The following is the implemented layout that better fits the QWERTY keyboard lay
 The following are screenshots of the Emulator working with default settings on some well-known ROM files.
 
 ![CHIP-8 Logo](screenshots/logo.png)
+
 ![Screenshot Pong](screenshots/pong.png)
+
 ![Screenshot Invaders](screenshots/invaders.png)
 
 ## License
