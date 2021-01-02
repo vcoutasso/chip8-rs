@@ -13,10 +13,10 @@ use chip8::Chip8;
 
 fn main() {
     // Info about the program and arguments
-    let args = App::new("chip8")
-        .version("0.1.0")
-        .author("Vinícius Couto <vinicouto12@gmail.com>")
-        .about("A CHIP8 emulator written in Rust")
+    let args = App::new(clap::crate_name!())
+        .version(clap::crate_version!())
+        .author(clap::crate_authors!())
+        .about(clap::crate_description!())
         .arg(
             Arg::with_name("rom")
                 .value_name("PATH_TO_ROM")

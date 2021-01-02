@@ -3,6 +3,7 @@ name = "chip8"
 version = "0.1.0"
 authors = ["Vinícius Couto <vcoutasso@gmail.com>"]
 edition = "2018"
+description = "A CHIP8 emulator written in Rust"
 
 [dependencies]
 rand = "0.7.3"
